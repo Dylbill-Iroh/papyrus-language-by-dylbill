@@ -1,0 +1,70 @@
+{
+    "comments": {
+        "lineComment": ";",
+        "blockComment": [
+            ";/",
+            "/;"
+        ]
+    },
+    "brackets": [
+        [
+            "(",
+            ")"
+        ],
+        [
+            "[",
+            "]"
+        ]
+    ],
+    "autoClosingPairs": [
+        {
+            "open": "(",
+            "close": ")"
+        },
+        {
+            "open": "[",
+            "close": "]"
+        },
+        {
+            "open": "{",
+            "close": "}"
+        },
+        {
+            "open": "\"",
+            "close": "\"",
+            "notIn": [
+                "string",
+                "comment"
+            ]
+        }
+    ],
+    "surroundingPairs": [
+        [
+            "(",
+            ")"
+        ],
+        [
+            "[",
+            "]"
+        ],
+        [
+            "{",
+            "}"
+        ],
+        [
+            "\"",
+            "\""
+        ]
+    ],
+    "wordPattern": "[A-Za-z_][A-Za-z0-9_]*(?::[A-Za-z_][A-Za-z0-9_]*)*|-?\\d+(?:\\.\\d+)?",
+    "indentationRules": {
+        "increaseIndentPattern": {
+            "pattern": "^\\s*((\\w+(\\[\\])?\\s+)?(function|event)\\b(?!.*\\bnative\\b)|if\\b|elseif\\b|else\\b|while\\b|(auto\\s+)?state\\b|struct\\b|group\\b|(\\w+(\\[\\])?\\s+)?property\\b(?!.*\\b(auto|autoreadonly|const)\\b))",
+            "flags": "i"
+        },
+        "decreaseIndentPattern": {
+            "pattern": "^\\s*(endfunction|endevent|endif|elseif|else|endwhile|endstate|endstruct|endgroup|endproperty)\\b",
+            "flags": "i"
+        }
+    }
+}

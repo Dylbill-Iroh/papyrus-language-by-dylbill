@@ -1,0 +1,433 @@
+{
+  "name": "papyrus-language-by-dylbill",
+  "displayName": "Papyrus Language by Dylbill",
+  "description": "Adds language support for papyrus (psc). Customizable syntax highlighting and intellisence, go to / peak definitions, hover context and auto complete.",
+  "version": "0.0.1",
+  "publisher": "Dylbill",
+  "engines": {
+    "vscode": "^1.140.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:papyrus",
+    "workspaceContains:**/*.ppj"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "papyrus",
+        "aliases": [
+          "Papyrus",
+          "papyrus"
+        ],
+        "extensions": [
+          ".psc"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "semanticTokenTypes": [
+      {
+        "id": "papyrusFunction",
+        "superType": "function",
+        "description": "Any name followed by (, e.g. MyCustomFunction in MyScript.MyCustomFunction()."
+      },
+      {
+        "id": "papyrusType",
+        "superType": "type",
+        "description": "Bool, Int, Float, String, Var, Self, Parent, None, and script names: any .psc in a .ppj source folder whose name is longer than 3 characters."
+      },
+      {
+        "id": "papyrusIdentifier",
+        "superType": "variable",
+        "description": "Every other name: properties, variables and parameters."
+      },
+      {
+        "id": "papyrusFunctionKeyword",
+        "superType": "keyword",
+        "description": "Function and EndFunction."
+      },
+      {
+        "id": "papyrusEventKeyword",
+        "superType": "keyword",
+        "description": "Event, EndEvent and CustomEvent."
+      },
+      {
+        "id": "papyrusPropertyKeyword",
+        "superType": "keyword",
+        "description": "Property, EndProperty and property flags (Auto, AutoReadOnly, Conditional, Hidden, Mandatory)."
+      },
+      {
+        "id": "papyrusStructKeyword",
+        "superType": "keyword",
+        "description": "Struct and EndStruct (Fallout 4)."
+      },
+      {
+        "id": "papyrusStateKeyword",
+        "superType": "keyword",
+        "description": "State, EndState, and Auto before State."
+      },
+      {
+        "id": "papyrusReturnKeyword",
+        "superType": "keyword",
+        "description": "Return."
+      },
+      {
+        "id": "papyrusFlowKeyword",
+        "superType": "keyword",
+        "description": "If, ElseIf, Else, EndIf, While and EndWhile."
+      },
+      {
+        "id": "papyrusScriptnameKeyword",
+        "superType": "keyword",
+        "description": "Scriptname."
+      },
+      {
+        "id": "papyrusExtendsKeyword",
+        "superType": "keyword",
+        "description": "Extends."
+      },
+      {
+        "id": "papyrusKeyword",
+        "superType": "keyword",
+        "description": "Import, New, As, Is, Native, Global, Const, BetaOnly, DebugOnly, Group/EndGroup, script flags."
+      },
+      {
+        "id": "papyrusConstant",
+        "superType": "keyword",
+        "description": "True and False."
+      },
+      {
+        "id": "papyrusOperator",
+        "superType": "operator",
+        "description": "Operators such as = + == != && ||."
+      },
+      {
+        "id": "papyrusString",
+        "superType": "string",
+        "description": "String literals."
+      },
+      {
+        "id": "papyrusNumber",
+        "superType": "number",
+        "description": "Number literals."
+      },
+      {
+        "id": "papyrusComment",
+        "superType": "comment",
+        "description": "; line comments and ;/ block comments /;."
+      },
+      {
+        "id": "papyrusDocComment",
+        "superType": "comment",
+        "description": "{ documentation comments }."
+      }
+    ],
+    "configuration": [
+      {
+        "title": "Papyrus (Dylbill)",
+        "properties": {
+          "dylbillPapyrus.colors.enabled": {
+            "type": "boolean",
+            "default": true,
+            "order": 0,
+            "markdownDescription": "Apply the Papyrus colors below. Turn off to use your color theme's colors instead.\n\nColors are applied through `editor.semanticTokenColorCustomizations` in your user settings and only affect Papyrus files.\n\n[Open color picker](command:dylbillPapyrus.customizeColors) · [Restore all colors to defaults](command:dylbillPapyrus.resetColors)"
+          },
+          "dylbillPapyrus.colors.function": {
+            "type": "string",
+            "default": "#CD9BFF",
+            "format": "color-hex",
+            "order": 1,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "Any name followed by `(`, e.g. `MyCustomFunction` in `MyScript.MyCustomFunction()`.\n\nDefault: `#CD9BFF` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22function%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.type": {
+            "type": "string",
+            "default": "#4EC9B0",
+            "format": "color-hex",
+            "order": 2,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`Bool`, `Int`, `Float`, `String`, `Var`, `Self`, `Parent`, `None`, and script names: any `.psc` in a `.ppj` source folder whose name is longer than 3 characters.\n\nDefault: `#4EC9B0` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22type%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.identifier": {
+            "type": "string",
+            "default": "#A9DEFC",
+            "format": "color-hex",
+            "order": 3,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "Every other name: properties, variables and parameters.\n\nDefault: `#A9DEFC` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22identifier%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.functionKeyword": {
+            "type": "string",
+            "default": "#9B37E7",
+            "format": "color-hex",
+            "order": 4,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`Function` and `EndFunction`.\n\nDefault: `#9B37E7` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22functionKeyword%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.eventKeyword": {
+            "type": "string",
+            "default": "#D14141",
+            "format": "color-hex",
+            "order": 5,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`Event`, `EndEvent` and `CustomEvent`.\n\nDefault: `#D14141` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22eventKeyword%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.propertyKeyword": {
+            "type": "string",
+            "default": "#386AFF",
+            "format": "color-hex",
+            "order": 6,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`Property`, `EndProperty` and property flags (`Auto`, `AutoReadOnly`, `Conditional`, `Hidden`, `Mandatory`).\n\nDefault: `#386AFF` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22propertyKeyword%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.structKeyword": {
+            "type": "string",
+            "default": "#9B37E7",
+            "format": "color-hex",
+            "order": 7,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`Struct` and `EndStruct` (Fallout 4).\n\nDefault: `#9B37E7` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22structKeyword%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.stateKeyword": {
+            "type": "string",
+            "default": "#9B37E7",
+            "format": "color-hex",
+            "order": 8,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`State`, `EndState`, and `Auto` before `State`.\n\nDefault: `#9B37E7` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22stateKeyword%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.returnKeyword": {
+            "type": "string",
+            "default": "#C586C0",
+            "format": "color-hex",
+            "order": 9,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`Return`.\n\nDefault: `#C586C0` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22returnKeyword%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.flowKeyword": {
+            "type": "string",
+            "default": "#9B37E7",
+            "format": "color-hex",
+            "order": 10,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`If`, `ElseIf`, `Else`, `EndIf`, `While` and `EndWhile`.\n\nDefault: `#9B37E7` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22flowKeyword%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.scriptnameKeyword": {
+            "type": "string",
+            "default": "#386AFF",
+            "format": "color-hex",
+            "order": 11,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`Scriptname`.\n\nDefault: `#386AFF` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22scriptnameKeyword%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.extendsKeyword": {
+            "type": "string",
+            "default": "#FFFFFF",
+            "format": "color-hex",
+            "order": 12,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`Extends`.\n\nDefault: `#FFFFFF` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22extendsKeyword%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.keyword": {
+            "type": "string",
+            "default": "#569CD6",
+            "format": "color-hex",
+            "order": 13,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`Import`, `New`, `As`, `Is`, `Native`, `Global`, `Const`, `BetaOnly`, `DebugOnly`, `Group`/`EndGroup`, script flags.\n\nDefault: `#569CD6` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22keyword%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.constant": {
+            "type": "string",
+            "default": "#569CD6",
+            "format": "color-hex",
+            "order": 14,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`True` and `False`.\n\nDefault: `#569CD6` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22constant%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.operator": {
+            "type": "string",
+            "default": "#D4D4D4",
+            "format": "color-hex",
+            "order": 15,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "Operators such as `=` `+` `==` `!=` `&&` `||`.\n\nDefault: `#D4D4D4` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22operator%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.string": {
+            "type": "string",
+            "default": "#E29458DF",
+            "format": "color-hex",
+            "order": 16,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "String literals.\n\nDefault: `#E29458DF` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22string%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.number": {
+            "type": "string",
+            "default": "#B5CEA8",
+            "format": "color-hex",
+            "order": 17,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "Number literals.\n\nDefault: `#B5CEA8` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22number%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.comment": {
+            "type": "string",
+            "default": "#00F445D9",
+            "format": "color-hex",
+            "order": 18,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`;` line comments and `;/ block comments /;`.\n\nDefault: `#00F445D9` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22comment%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          },
+          "dylbillPapyrus.colors.docComment": {
+            "type": "string",
+            "default": "#00F445D9",
+            "format": "color-hex",
+            "order": 19,
+            "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
+            "patternErrorMessage": "Use a hex color like #CD9BFF (or #RRGGBBAA with transparency).",
+            "markdownDescription": "`{ documentation comments }`.\n\nDefault: `#00F445D9` · [Restore default](command:dylbillPapyrus.resetColors?%5B%22docComment%22%5D) · [Open color picker](command:dylbillPapyrus.customizeColors)"
+          }
+        }
+      },
+      {
+        "title": "Papyrus (Dylbill) - Compiler",
+        "properties": {
+          "dylbillPapyrus.compiler.soundFileSuccess": {
+            "type": "string",
+            "default": "",
+            "order": 1,
+            "markdownDescription": "Full path to a `.wav` played when a compile succeeds. Without one, a notification is shown instead."
+          },
+          "dylbillPapyrus.compiler.soundFileFail": {
+            "type": "string",
+            "default": "",
+            "order": 2,
+            "markdownDescription": "Full path to a `.wav` played when a compile fails."
+          },
+          "dylbillPapyrus.compiler.compileOnSave": {
+            "type": "boolean",
+            "default": false,
+            "order": 3,
+            "markdownDescription": "Compile a `.psc` script when you save it."
+          },
+          "dylbillPapyrus.compiler.clearOutputBeforeCompiling": {
+            "type": "boolean",
+            "default": false,
+            "order": 4,
+            "markdownDescription": "Clear the **Papyrus Compiler** output panel before each compile."
+          }
+        }
+      }
+    ],
+    "configurationDefaults": {
+      "[papyrus]": {
+        "editor.semanticHighlighting.enabled": true
+      }
+    },
+    "commands": [
+      {
+        "command": "dylbillPapyrus.customizeColors",
+        "title": "Customize Colors",
+        "category": "Papyrus"
+      },
+      {
+        "command": "dylbillPapyrus.resetColors",
+        "title": "Reset All Colors to Defaults",
+        "category": "Papyrus"
+      },
+      {
+        "command": "dylbillPapyrus.showProjects",
+        "title": "Show Projects and Source Folders",
+        "category": "Papyrus"
+      },
+      {
+        "command": "dylbillPapyrus.compileScript",
+        "title": "Papyrus - Compile Current Script"
+      },
+      {
+        "command": "dylbillPapyrus.compileAllTabs",
+        "title": "Papyrus - Compile All Open Tabs"
+      },
+      {
+        "command": "dylbillPapyrus.compileFolder",
+        "title": "Papyrus - Compile All Scripts in Current Folder"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "dylbillPapyrus.compileScript",
+          "when": "resourceExtname == .psc",
+          "group": "papyrus@1"
+        },
+        {
+          "command": "dylbillPapyrus.compileFolder",
+          "when": "resourceExtname == .psc",
+          "group": "papyrus@2"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "dylbillPapyrus.compileScript",
+          "when": "resourceExtname == .psc",
+          "group": "papyrus@1"
+        },
+        {
+          "command": "dylbillPapyrus.compileFolder",
+          "when": "explorerResourceIsFolder || resourceExtname == .psc",
+          "group": "papyrus@2"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "npm run check-types && npm run lint && node esbuild.js",
+    "watch": "npm-run-all -p watch:*",
+    "watch:esbuild": "node esbuild.js --watch",
+    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+    "package": "npm run check-types && npm run lint && node esbuild.js --production",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "check-types": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.140.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "24.x",
+    "typescript-eslint": "^8.61.1",
+    "eslint": "^10.5.0",
+    "esbuild": "^0.28.1",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^6.0.3",
+    "@vscode/test-cli": "^0.0.15",
+    "@vscode/test-electron": "^3.0.0"
+  },
+  "overrides": {
+    "diff": "^8.0.4",
+    "serialize-javascript": "^7.0.6"
+  }
+}
