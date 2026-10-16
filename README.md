@@ -1,4 +1,5 @@
-<img align="right" src="https://raw.githubusercontent.com/Dylbill-Iroh/papyrus-language-by-dylbill/main/Media/icon.png" width="128" alt="icon" />
+<img align="right" src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/Media/icon.png" width="128" alt="icon" />
+
 
 # Papyrus Language by Dylbill
 
@@ -19,19 +20,19 @@ Again, this is for better performance. Script types, E.G ObjectReference, Actor,
 ## Intellisence
 - **Peek Definition**
 
-<img src="https://raw.githubusercontent.com/Dylbill-Iroh/papyrus-language-by-dylbill/main/Media/peek-definition-preview.gif" width="100%" />
+<img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/Media/peek-definition-preview.gif" width="100%" />
 
 - **Go To Definition**
 
-<img src="https://raw.githubusercontent.com/Dylbill-Iroh/papyrus-language-by-dylbill/main/Media/go-to-definition-preview.gif" width="100%" />
+<img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/Media/go-to-definition-preview.gif" width="100%" />
 
 **hover Context**, with documentation, parameters and the full definition.
 
-<img src="https://raw.githubusercontent.com/Dylbill-Iroh/papyrus-language-by-dylbill/main/Media/hover-preview.gif" width="100%" />
+<img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/Media/hover-preview.gif" width="100%" />
 
 - **Autocomplete**: suggests global functions when typing **someScript.** or member functions when typing **someProperty**. `Event On…` inserts the full event with paramters and `EndEvent`.
 
-<img src="https://raw.githubusercontent.com/Dylbill-Iroh/papyrus-language-by-dylbill/main/Media/auto-complete-preview.gif" width="100%" />
+<img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/Media/auto-complete-preview.gif" width="100%" />
 
 - **Parameter hints** while typing function calls.
 
