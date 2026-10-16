@@ -1,5 +1,4 @@
-# Papyrus Language by Dylbill
-<img align="right" src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/src/Media/icon.png" width="128" />
+# Papyrus Language by Dylbill <img align="right" src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/src/Media/icon.png" width="128" />
 
 Fast lightweight language support for papyrus (`.psc`) scripting, written in plain TypeScript with no language server.
 
