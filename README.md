@@ -16,16 +16,16 @@ Again, this is for better performance. Script types, E.G ObjectReference, Actor,
 
 ## Intellisence
 - **Peek Definition**
-<img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/tree/main/src/Media/peek definition preview.gif" width="100%" />
+<img src="" width="100%" />
 
 - **Go To Definition**
-<img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/tree/main/src/Media/go to definition preview.gif" width="100%" />
+<img src="" width="100%" />
 
 **hover Context**, with documentation, parameters and the full definition.
-<img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/tree/main/src/Media/hover preview.gif" width="100%" />
+<img src="" width="100%" />
 
 - **Autocomplete**: suggests global functions when typing **someScript.** or member functions when typing **someProperty**. `Event On…` inserts the full event with paramters and `EndEvent`.
-<img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/tree/main/src/Media/auto complete preview.gif" width="100%" />
+<img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/src/Media/auto%20complete%20preview.gif" width="100%" />
 
 - **Parameter hints** while typing function calls.
 
