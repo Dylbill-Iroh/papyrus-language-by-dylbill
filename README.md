@@ -1,4 +1,4 @@
-<img align="right" src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/Media/icon.png" width="128" alt="icon" />
+<img align="right" src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/Media/icon-no-background.png" width="128" alt="icon" />
 
 
 # Papyrus Language by Dylbill
