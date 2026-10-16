@@ -1,21 +1,22 @@
 {
   "name": "papyrus-language-by-dylbill",
   "displayName": "Papyrus Language",
-  "description": "Fast lightweight language support for papyrus (`.psc`) scripting, written in plain TypeScript with no language server. intellisence, compiling and customizable syntax highlighting.",
+  "description": "Fast lightweight language support for papyrus (`.psc`) scripting, written in plain TypeScript with no language server. IntelliSense, compiling and customizable syntax highlighting.",
   "icon": "Media/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill"
   },
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "publisher": "Dylbill",
+  "license": "MIT",
   "author": {
-  	"name": "Dylbill",
-  	"url": "https://github.com/Dylbill-Iroh"
+    "name": "Dylbill",
+    "url": "https://github.com/Dylbill-Iroh"
   },
   "bugs": {
-  	"url": "https://github.com/Dylbill-Iroh/papyrus-lang/issues"
+    "url": "https://github.com/Dylbill-Iroh/papyrus-lang/issues"
   },
-    
   "engines": {
     "vscode": "^1.140.0"
   },

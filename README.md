@@ -17,7 +17,7 @@ Any word that has '(' after it is seen as a function. E.G CustomFunction(), MyVa
 Any word that doesn't match the other syntax highlighting rules gets the generic property color.
 Again, this is for better performance. Script types, E.G ObjectReference, Actor, MyScript ect are verified.
 
-## Intellisence
+## IntelliSence
 - **Peek Definition**
 
 <img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/Media/peek-definition-preview.gif?raw=true" width="100%" />
