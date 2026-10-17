@@ -2,8 +2,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ProjectIndex } from './projectIndex';
-import { type PapyrusSymbol, type ScriptInfo, parseScript, scopeAt } from './symbols';
-import { isReservedWord } from './tokenizer';
+import { type FunctionScope, type PapyrusSymbol, type ScriptInfo, parseScript, scopeAt } from './symbols';
+import { LineState, TokenKind, isReservedWord, tokenizeLine } from './tokenizer';
+import { blockIndent, outdentKeywords } from './indent';
 
 /** A resolved name: a symbol in some script, or a whole script. */
 type Target =
@@ -42,6 +43,7 @@ export class PapyrusNavigation
         vscode.HoverProvider,
         vscode.CompletionItemProvider,
         vscode.SignatureHelpProvider,
+        vscode.RenameProvider,
         vscode.Disposable
 {
     private readonly fileCache = new Map<string, { mtime: number; info: ScriptInfo }>();
@@ -55,6 +57,7 @@ export class PapyrusNavigation
             vscode.languages.registerHoverProvider(selector, this),
             vscode.languages.registerCompletionItemProvider(selector, this, '.'),
             vscode.languages.registerSignatureHelpProvider(selector, this, '(', ','),
+            vscode.languages.registerRenameProvider(selector, this),
             vscode.workspace.onDidCloseTextDocument((doc) => this.docCache.delete(doc.uri.toString()))
         );
     }
@@ -237,8 +240,14 @@ export class PapyrusNavigation
             }
         }
 
+        // EndIf, EndFunction, Else, ... as the first word: line them up with their block, the same
+        // way typing the whole word does (VS Code only re-indents on typing, not on autocomplete).
+        const outdent = /^\s*$/.test(beforePrefix) ? outdentEdit(document, position.line) : undefined;
         for (const keyword of completionKeywords) {
             const item = new vscode.CompletionItem(keyword, vscode.CompletionItemKind.Keyword);
+            if (outdent && outdentKeywords.has(keyword.toLowerCase())) {
+                item.additionalTextEdits = [outdent];
+            }
             add(item);
         }
 
@@ -652,6 +661,244 @@ export class PapyrusNavigation
         }
     }
 
+    // ---- rename ------------------------------------------------------------------------------
+
+    prepareRename(document: vscode.TextDocument, position: vscode.Position): { range: vscode.Range; placeholder: string } {
+        const range = document.getWordRangeAtPosition(position, /[A-Za-z_]\w*/);
+        if (!range || isInCommentOrString(document.lineAt(position.line).text, range.start.character)) {
+            throw new Error('Nothing to rename here.');
+        }
+        const problem = this.renameProblem(this.resolve(document, position));
+        if (problem) {
+            throw new Error(problem);
+        }
+        return { range, placeholder: document.getText(range) };
+    }
+
+    async provideRenameEdits(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        newName: string,
+        token: vscode.CancellationToken
+    ): Promise<vscode.WorkspaceEdit> {
+        const target = this.resolve(document, position);
+        const problem = this.renameProblem(target);
+        if (problem || target?.kind !== 'symbol') {
+            throw new Error(problem ?? 'Nothing to rename here.');
+        }
+        const sym = target.symbol;
+        const oldLower = sym.name.toLowerCase();
+        const newLower = newName.toLowerCase();
+
+        // Validate the new name.
+        if (!/^[A-Za-z_]\w*$/.test(newName)) {
+            throw new Error(`"${newName}" isn't a valid Papyrus name (letters, digits and _, not starting with a digit).`);
+        }
+        if (isReservedWord(newLower)) {
+            throw new Error(`"${newName}" is a Papyrus keyword or type.`);
+        }
+        if (this.index.findScript(newName)) {
+            throw new Error(`"${newName}" is a script name; using it as a name would be ambiguous.`);
+        }
+
+        const info = target.script ?? this.fileInfo(target.file);
+        if (!info) {
+            throw new Error(`Couldn't read ${path.basename(target.file)}.`);
+        }
+        const scope = localScope(info, sym);
+        const isCallable = sym.kind === 'function' || sym.kind === 'event';
+
+        if (newLower !== oldLower) {
+            if (scope) {
+                const clash = [...scope.parameters, ...scope.locals].find((s) => s.name.toLowerCase() === newLower);
+                if (clash) {
+                    throw new Error(`"${newName}" is already used in ${scope.name} (line ${clash.line + 1}).`);
+                }
+            } else {
+                const dir = path.dirname(target.file);
+                for (const { info: owner } of [{ info }, ...this.chainFrom(info, dir, target.file)]) {
+                    const clash = owner.members.get(newLower);
+                    if (clash && (clash.kind === 'function' || clash.kind === 'event') === isCallable) {
+                        throw new Error(`"${newName}" already exists in ${owner.name ?? 'this script'} (line ${clash.line + 1}).`);
+                    }
+                }
+            }
+        }
+
+        if (sym.kind === 'property') {
+            const answer = await vscode.window.showWarningMessage(
+                `Rename property ${sym.name} to ${newName}?`,
+                {
+                    modal: true,
+                    detail:
+                        'Property values set in the Creation Kit are saved in your plugin by property name. ' +
+                        'After renaming, the property needs to be filled again in the Creation Kit.',
+                },
+                'Rename'
+            );
+            if (answer !== 'Rename') {
+                return new vscode.WorkspaceEdit();
+            }
+        }
+
+        // Which files to search: locals and script variables are private to their script.
+        const files = new Map<string, string>();
+        const addFile = (f: string) => files.set(f.toLowerCase(), f);
+        addFile(target.file);
+        if (!scope && sym.kind !== 'variable') {
+            this.index.allScriptFiles().forEach(addFile);
+            for (const doc of vscode.workspace.textDocuments) {
+                if (doc.languageId === 'papyrus' && doc.uri.scheme === 'file') {
+                    addFile(doc.uri.fsPath);
+                }
+            }
+            try {
+                const dir = path.dirname(target.file);
+                for (const name of fs.readdirSync(dir)) {
+                    if (/\.psc$/i.test(name)) {
+                        addFile(path.join(dir, name));
+                    }
+                }
+            } catch {
+                // ignore
+            }
+        }
+
+        // Candidate occurrences: the name as an identifier (not in comments or strings).
+        const candidates: { file: string; text: string; tokens: { line: number; start: number; length: number }[] }[] = [];
+        for (const file of files.values()) {
+            if (token.isCancellationRequested) {
+                return new vscode.WorkspaceEdit();
+            }
+            const text = this.fileText(file);
+            if (text === undefined || !text.toLowerCase().includes(oldLower)) {
+                continue;
+            }
+            const tokens = identifierTokens(text, oldLower);
+            if (tokens.length > 0) {
+                candidates.push({ file, text, tokens });
+            }
+        }
+
+        // The declarations being renamed: the target, plus overrides of it in scripts that extend
+        // the target's script (renaming only the parent would turn them into new functions).
+        const targetKeys = new Set([symbolKey(target.file, sym)]);
+        if (isCallable && !sym.global) {
+            const targetLower = target.file.toLowerCase();
+            for (const c of candidates) {
+                if (c.file.toLowerCase() === targetLower) {
+                    continue;
+                }
+                const other = this.fileInfo(c.file);
+                const override = other?.members.get(oldLower);
+                if (!other || !override || override.kind !== sym.kind) {
+                    continue;
+                }
+                for (const { file } of this.chainFrom(other, path.dirname(c.file), c.file)) {
+                    if (file.toLowerCase() === targetLower) {
+                        targetKeys.add(symbolKey(c.file, override));
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Rename each occurrence that resolves to one of those declarations.
+        const edit = new vscode.WorkspaceEdit();
+        for (const c of candidates) {
+            if (token.isCancellationRequested) {
+                return new vscode.WorkspaceEdit();
+            }
+            const doc = await this.openDocument(c.file);
+            if (!doc) {
+                continue;
+            }
+            for (const t of c.tokens) {
+                if (scope && (t.line < scope.startLine || t.line > scope.endLine)) {
+                    continue;
+                }
+                const resolved = this.resolve(doc, new vscode.Position(t.line, t.start));
+                if (resolved?.kind === 'symbol' && targetKeys.has(symbolKey(resolved.file, resolved.symbol))) {
+                    edit.replace(doc.uri, new vscode.Range(t.line, t.start, t.line, t.start + t.length), newName);
+                }
+            }
+        }
+
+        if (edit.size === 0) {
+            throw new Error(`No references to ${sym.name} found.`);
+        }
+        return edit;
+    }
+
+    /** Why a target can't be renamed, or undefined if it can. */
+    private renameProblem(target: Target | undefined): string | undefined {
+        if (!target) {
+            return "Couldn't find where this is declared, so it can't be renamed safely.";
+        }
+        if (target.kind === 'script') {
+            return 'Script names must match their .psc file name. Rename the file (and its Scriptname line) instead.';
+        }
+        const sym = target.symbol;
+        if (sym.kind === 'state' || sym.kind === 'struct' || sym.kind === 'customevent') {
+            return `Renaming ${sym.kind === 'customevent' ? 'custom events' : sym.kind + 's'} isn't supported (they're also referenced by name in strings).`;
+        }
+        if (sym.native) {
+            return `${sym.name} is native: it's defined by the game, so it can't be renamed.`;
+        }
+        if (sym.kind === 'function' || sym.kind === 'event') {
+            const info = target.script ?? this.fileInfo(target.file);
+            if (info && !sym.global) {
+                const lower = sym.name.toLowerCase();
+                for (const { info: parent } of this.chainFrom(info, path.dirname(target.file), target.file)) {
+                    const inherited = parent.members.get(lower);
+                    if (inherited && (inherited.kind === 'function' || inherited.kind === 'event')) {
+                        return `${sym.name} overrides ${parent.name ?? 'a parent script'}.${inherited.name}, so it has to keep that name.`;
+                    }
+                }
+                // Every parent script has to be readable to know this isn't an override.
+                const dir = path.dirname(target.file);
+                let current: ScriptInfo | undefined = info;
+                for (let depth = 0; current?.extends && depth < maxInheritance; depth++) {
+                    const parentFile = this.findScriptFile(current.extends, dir);
+                    if (!parentFile) {
+                        return `Couldn't find ${current.extends}.psc, so there's no way to check whether ${sym.name} overrides it.`;
+                    }
+                    current = this.fileInfo(parentFile);
+                }
+            }
+        }
+        return undefined;
+    }
+
+    /** A file's text: the open editor's (unsaved changes included), else from disk. */
+    private fileText(file: string): string | undefined {
+        const open = vscode.workspace.textDocuments.find(
+            (d) => d.uri.scheme === 'file' && d.uri.fsPath.toLowerCase() === file.toLowerCase()
+        );
+        if (open) {
+            return open.getText();
+        }
+        try {
+            return fs.readFileSync(file, 'utf8');
+        } catch {
+            return undefined;
+        }
+    }
+
+    private async openDocument(file: string): Promise<vscode.TextDocument | undefined> {
+        const open = vscode.workspace.textDocuments.find(
+            (d) => d.uri.scheme === 'file' && d.uri.fsPath.toLowerCase() === file.toLowerCase()
+        );
+        if (open) {
+            return open;
+        }
+        try {
+            return await vscode.workspace.openTextDocument(vscode.Uri.file(file));
+        } catch {
+            return undefined;
+        }
+    }
+
     // ---- files ---------------------------------------------------------------------------
 
     /** A script's .psc: from the .ppj source folders, else next to the current file. */
@@ -749,4 +996,53 @@ function isInCommentOrString(line: string, column: number): boolean {
 
 function escapeMarkdown(text: string) {
     return text.replace(/([\\`*_[\]<>])/g, '\\$1');
+}
+
+/** Re-indents the current line to match the block it closes (see indent.ts). */
+function outdentEdit(document: vscode.TextDocument, line: number): vscode.TextEdit | undefined {
+    const indent = blockIndent((i) => document.lineAt(i).text, line);
+    if (indent === undefined) {
+        return undefined;
+    }
+    const current = /^\s*/.exec(document.lineAt(line).text)![0];
+    if (current === indent) {
+        return undefined;
+    }
+    return vscode.TextEdit.replace(new vscode.Range(line, 0, line, current.length), indent);
+}
+
+/** Identifies a declaration across files (case-insensitive paths and names). */
+function symbolKey(file: string, sym: PapyrusSymbol): string {
+    return `${file.toLowerCase()}|${sym.line}|${sym.name.toLowerCase()}`;
+}
+
+/** The function scope a local variable or parameter belongs to, if it is one. */
+function localScope(info: ScriptInfo, sym: PapyrusSymbol): FunctionScope | undefined {
+    if (sym.kind !== 'variable' && sym.kind !== 'parameter') {
+        return undefined;
+    }
+    const scope = scopeAt(info, sym.line);
+    if (!scope) {
+        return undefined;
+    }
+    const lower = sym.name.toLowerCase();
+    const isMine = (s: PapyrusSymbol) => s.line === sym.line && s.name.toLowerCase() === lower;
+    return scope.parameters.some(isMine) || scope.locals.some(isMine) ? scope : undefined;
+}
+
+/** Every identifier equal to `lower` (case-insensitive), skipping comments and strings. */
+function identifierTokens(text: string, lower: string): { line: number; start: number; length: number }[] {
+    const result: { line: number; start: number; length: number }[] = [];
+    const lines = text.split(/\r?\n/);
+    let state: LineState = LineState.Normal;
+    for (let line = 0; line < lines.length; line++) {
+        const tokenized = tokenizeLine(lines[line], state);
+        state = tokenized.endState;
+        for (const t of tokenized.tokens) {
+            if (t.kind === TokenKind.Identifier && t.lower === lower) {
+                result.push({ line, start: t.start, length: t.length });
+            }
+        }
+    }
+    return result;
 }

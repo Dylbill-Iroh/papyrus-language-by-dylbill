@@ -10,6 +10,8 @@ Fast lightweight language support for papyrus (`.psc`) scripting, written in pla
 - **Semantic syntax coloring**: types, script names, functions, properties/variables, and separate colors for Function, Event, Property, Struct, State, Return and flow keywords. Colors can be customized with the  **Papyrus: Customize Colors** command, or in settings. 
 Search for **Dylbill Papyrus**. 
 
+<img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/Media/syntax-highlighting-preview.gif?raw=true" width="100%" />
+
 - **Performance**: 
 When typing, only the lines you edit are re-colored, not the entire document which is better for performance.
 Functions / properties are not verified in source files. 
@@ -17,24 +19,31 @@ Any word that has '(' after it is seen as a function. E.G CustomFunction(), MyVa
 Any word that doesn't match the other syntax highlighting rules gets the generic property color.
 Again, this is for better performance. Script types, E.G ObjectReference, Actor, MyScript ect are verified.
 
+
 ## IntelliSence
 - **Peek Definition**
 
 <img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/Media/peek-definition-preview.gif?raw=true" width="100%" />
 
+
 - **Go To Definition**
 
 <img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/Media/go-to-definition-preview.gif?raw=true" width="100%" />
+
 
 **hover Context**, with documentation, parameters and the full definition.
 
 <img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/Media/hover-preview.gif?raw=true" width="100%" />
 
+
 - **Autocomplete**: suggests global functions when typing **someScript.** or member functions when typing **someProperty**. `Event On…` inserts the full event with paramters and `EndEvent`.
 
 <img src="https://github.com/Dylbill-Iroh/papyrus-language-by-dylbill/blob/main/Media/auto-complete-preview.gif?raw=true" width="100%" />
 
+
 - **Parameter hints** while typing function calls.
+
+- **Rename** (F2 or right click → Rename Symbol): renames a variable, property or function everywhere it's used in your source folders. Each match is checked to really refer to the same declaration, so same-named variables in other functions or scripts, comments and strings are left alone. Overrides in child scripts are renamed with their parent; native functions and events the game calls by name (like OnActivate) can't be renamed.
 
 - **Project aware**: reads the source folders from your `.ppj` files (Imports first, then Folders).
 

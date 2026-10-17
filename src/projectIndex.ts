@@ -81,6 +81,17 @@ export class ProjectIndex implements vscode.Disposable {
         return this.scriptPaths.get(name.toLowerCase()) ?? [];
     }
 
+    /** Every known .psc file, each once. */
+    allScriptFiles(): string[] {
+        const files = new Map<string, string>();
+        for (const list of this.scriptPaths.values()) {
+            for (const file of list) {
+                files.set(file.toLowerCase(), file);
+            }
+        }
+        return [...files.values()];
+    }
+
     /** Script names starting with `prefix` (case-insensitive), up to `limit`. */
     scriptNamesStartingWith(prefix: string, limit: number): string[] {
         const lower = prefix.toLowerCase();
